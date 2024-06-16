@@ -1,1 +1,1 @@
-This repository contains all the projects I did to complete MITx course: 6.86x - Machine Learning with Python-From Linear Models to Deep Learning.
+The goal of this project 0 is to help you set up your Python environment and to give you an introduction to the mechanics of the online grading system.
