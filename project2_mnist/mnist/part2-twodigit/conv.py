@@ -19,11 +19,41 @@ class CNN(nn.Module):
 
     def __init__(self, input_dimension):
         super(CNN, self).__init__()
-        # TODO initialize model layers here
+        # Initialize model layers here
+        self.conv1 = nn.Conv2d(1, 32, 3)        # Conv layer: 1 input channel, 32 output channels, 3x3 kernel
+        self.bn1 = nn.BatchNorm2d(32)           # Batch normalization layer
+        self.relu1 = nn.LeakyReLU(0.01)         # LeakyReLU nonlinearity
+        self.pool1 = nn.MaxPool2d(2, 2)         # Max pooling layer: 2x2 kernel
+
+        self.conv2 = nn.Conv2d(32, 64, 3)       # Conv layer: 32 input channels, 64 output channels, 3x3 kernel
+        self.bn2 = nn.BatchNorm2d(64)           # Batch normalization layer
+        self.relu2 = nn.LeakyReLU(0.01)         # LeakyReLU nonlinearity
+        self.pool2 = nn.MaxPool2d(2, 2)         # Max pooling layer: 2x2 kernel
+
+        self.conv3 = nn.Conv2d(64, 128, 3)      # Additional Conv layer: 64 input channels, 128 output channels, 3x3 kernel
+        self.bn3 = nn.BatchNorm2d(128)          # Batch normalization layer
+        self.relu3 = nn.LeakyReLU(0.01)         # LeakyReLU nonlinearity
+        self.pool3 = nn.MaxPool2d(2, 2)         # Max pooling layer: 2x2 kernel
+
+        self.flatten = Flatten()                # Flatten layer
+
+        self.fc1 = nn.Linear(128 * 2 * 2, 256)  # Fully connected layer: 128*2*2 input features, 256 output features
+        self.dropout = nn.Dropout(0.5)          # Dropout layer with drop probability 0.5
+
+        self.fc2_first_digit = nn.Linear(256, 10)  # Fully connected layer: 256 input features, 10 output features
+        self.fc2_second_digit = nn.Linear(256, 10) # Fully connected layer: 256 input features, 10 output features
 
     def forward(self, x):
+        # Forward pass
+        x = self.pool1(self.relu1(self.bn1(self.conv1(x))))  # Conv -> BatchNorm -> LeakyReLU -> MaxPool
+        x = self.pool2(self.relu2(self.bn2(self.conv2(x))))  # Conv -> BatchNorm -> LeakyReLU -> MaxPool
+        x = self.pool3(self.relu3(self.bn3(self.conv3(x))))  # Additional Conv -> BatchNorm -> LeakyReLU -> MaxPool
 
-        # TODO use model layers to predict the two digits
+        x = self.flatten(x)                        # Flatten
+        x = self.dropout(self.fc1(x))              # Fully connected -> Dropout
+        
+        out_first_digit = self.fc2_first_digit(x)  # Output layer for first digit
+        out_second_digit = self.fc2_second_digit(x) # Output layer for second digit
 
         return out_first_digit, out_second_digit
 
