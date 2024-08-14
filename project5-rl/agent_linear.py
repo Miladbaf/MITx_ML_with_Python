@@ -45,9 +45,17 @@ def epsilon_greedy(state_vector, theta, epsilon):
     Returns:
         (int, int): the indices describing the action/object to take
     """
-    # TODO Your code here
-    action_index, object_index = None, None
-    return (action_index, object_index)
+    if np.random.binomial(1, epsilon):
+        # Randomly choose action and object
+        action_index, object_index = np.random.randint(NUM_ACTIONS, size=1), \
+                                    np.random.randint(NUM_OBJECTS, size=1)
+    else:
+        # Choose the best action and object
+        action_index, object_index = np.unravel_index(np.argmax(theta @ state_vector),
+                                                      (NUM_ACTIONS, NUM_OBJECTS))
+        
+    return (int(action_index), int(object_index))
+
 # pragma: coderesponse end
 
 
@@ -68,8 +76,22 @@ def linear_q_learning(theta, current_state_vector, action_index, object_index,
     Returns:
         None
     """
-    # TODO Your code here
-    theta = None # TODO Your update here
+    if terminal:
+        maxQ = 0.0
+    else:
+        maxQ = np.max(theta @ next_state_vector)
+    
+    # Q(s, c, theta) for current command, c
+    Q_val = (theta @ current_state_vector)[tuple2index(action_index, object_index)]
+    
+    # y = R(s, c) + gamma*maxQ
+    y = reward + GAMMA*maxQ
+    
+    theta[tuple2index(action_index, object_index)] = \
+        theta[tuple2index(action_index, object_index)] + \
+        ALPHA*(y - Q_val)*current_state_vector
+    
+    
 # pragma: coderesponse end
 
 

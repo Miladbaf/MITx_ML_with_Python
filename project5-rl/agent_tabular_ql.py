@@ -34,9 +34,18 @@ def epsilon_greedy(state_1, state_2, q_func, epsilon):
     Returns:
         (int, int): the indices describing the action/object to take
     """
-    # TODO Your code here
-    action_index, object_index = None, None
-    return (action_index, object_index)
+    if np.random.binomial(1, epsilon):
+        # Randomly choose action and object
+        action_index, object_index = np.random.randint(NUM_ACTIONS, size=1), \
+                                    np.random.randint(NUM_OBJECTS, size=1)
+    else:
+        # Choose the best action and object
+        action_index, object_index = np.unravel_index(np.argmax(q_func[
+                                                                    state_1,
+                                                                    state_2,
+                                                                    :, :]), 
+                                                    (NUM_ACTIONS, NUM_OBJECTS))
+    return (int(action_index), int(object_index))
 
 
 # pragma: coderesponse end
@@ -60,9 +69,15 @@ def tabular_q_learning(q_func, current_state_1, current_state_2, action_index,
     Returns:
         None
     """
-    # TODO Your code here
+    if terminal:
+        maxQ = 0
+    else:
+        maxQ = np.max(q_func[next_state_1, next_state_2, :, :])
+        
     q_func[current_state_1, current_state_2, action_index,
-           object_index] = 0  # TODO Your update here
+           object_index] = (1 - ALPHA)*q_func[current_state_1, current_state_2, 
+                                               action_index, object_index] + \
+                           ALPHA*(reward + GAMMA*maxQ)
 
     return None  # This function shouldn't return anything
 
@@ -84,28 +99,45 @@ def run_episode(for_training):
     """
     epsilon = TRAINING_EP if for_training else TESTING_EP
 
-    epi_reward = None
     # initialize for each episode
-    # TODO Your code here
+    epi_reward = 0.0
+    gamma_step = 1
 
     (current_room_desc, current_quest_desc, terminal) = framework.newGame()
-
+    
     while not terminal:
         # Choose next action and execute
-        # TODO Your code here
+        current_room_desc_index = dict_room_desc[current_room_desc]
+        current_quest_desc_index = dict_quest_desc[current_quest_desc]   # Get room and quest indices
+        
+        next_action_index, next_object_index = epsilon_greedy(current_room_desc_index,
+                                                              current_quest_desc_index,
+                                                              q_func,
+                                                              epsilon)  # Get next action/object
+        
+        next_room_desc, next_quest_desc, reward, terminal = framework.step_game(
+                                                            current_room_desc, 
+                                                            current_quest_desc, 
+                                                            next_action_index, 
+                                                            next_object_index)  # Take a step
+        
+        # Only need room index; quest remains same during an episode
+        next_room_desc_index = dict_room_desc[next_room_desc] 
 
         if for_training:
             # update Q-function.
-            # TODO Your code here
-            pass
+            tabular_q_learning(q_func, current_room_desc_index, current_quest_desc_index, 
+                               next_action_index, next_object_index, reward, 
+                               next_room_desc_index, current_quest_desc_index,
+                               terminal)
 
         if not for_training:
             # update reward
-            # TODO Your code here
-            pass
+            epi_reward += gamma_step * reward
+            gamma_step = GAMMA * gamma_step
 
         # prepare next step
-        # TODO Your code here
+        current_room_desc, current_quest_desc = next_room_desc, next_quest_desc
 
     if not for_training:
         return epi_reward

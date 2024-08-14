@@ -82,14 +82,18 @@ def deep_q_learning(current_state_vector, action_index, object_index, reward,
                          + q_values_object_next.max())
 
     q_value_cur_state = model(current_state_vector)
+    Q_val_cur = 1/2 * (q_value_cur_state[0][action_index] + \
+                    q_value_cur_state[1][object_index]) # Current Q value 
 
-    # TODO Your code here
+    maxQ = 0.0 if terminal else maxq_next
+    y = reward + GAMMA*maxQ # Target
 
-    loss = None
+    loss = 1/2 * (y - Q_val_cur)**2
 
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
+    
 # pragma: coderesponse end
 
 
